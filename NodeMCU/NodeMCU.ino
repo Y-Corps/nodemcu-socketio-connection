@@ -16,7 +16,7 @@ const char *ssid = "nikunja";
 const char *password = "12345678";
 
 // Socket.IO server settings
-const char *host = "192.168.138.62";
+const char *host = "192.168.148.62";
 const int port = 3001;
 
 
@@ -75,8 +75,8 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
            String timeValue = array[1].as<String>();  // Extract the value of "islight"
 
           // Print the value of "islight"
-          Serial.print(timeValue);
-          Serial.println();
+          // Serial.print(timeValue);
+          // Serial.println();
           // Serial.println(sio_isLightON ? "true" : "false");
         }
 // DynamicJsonDocument doc(1024);
@@ -144,27 +144,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
 
 
 
-            // Send DATA TO ARDUINO
-  StaticJsonDocument<512> docSendDataToArduino;  // Create a JSON document
-  // docSendDataToArduino["DTH_Temperature"] = 123;
-  docSendDataToArduino["DTH_Humidity"] = 2132;
-  // docSendDataToArduino["LDR_LightIntensity"] = 123;
-  // docSendDataToArduino["MQ135_GasConcentration"] = 312;
-  docSendDataToArduino["isFanON"] = sio_isFanON;
-  // docSendDataToArduino["isLightON"] = sio_isLightON;
-  // docSendDataToArduino["isVentON"] = 43;
-  // docSendDataToArduino["isAutomated"] = 234;
-  // docSendDataToArduino["DTH_Threshhold_Min"] = 234;
-  // docSendDataToArduino["DTH_Threshhold_Max"] = 234;
-  // docSendDataToArduino["MQ135_Threshhold_Min"] = 234;
-  // docSendDataToArduino["MQ135_Threshhold_Max"] = 342;
-  // docSendDataToArduino["LDR_Threshhold_Min"] = 23894;
-  // docSendDataToArduino["LDR_Threshhold_Max"] = 27983;
 
-  // Serialize JSON document to string and send it via software serial
-  serializeJson(docSendDataToArduino, swSerial);
-  swSerial.println();
-  docSendDataToArduino.clear();
 
 
 
@@ -221,6 +201,9 @@ void loop() {
 
   // RECEIVE JSON DATA FROM ARDUINO
   if (swSerial.available()) {
+
+
+
     String data = swSerial.readStringUntil('\n');  // Read the incoming JSON data from Arduino
 
     // Parse the JSON data
@@ -244,12 +227,16 @@ void loop() {
       int LDR_Threshhold_Max = docReceivedFromArduino["LDR_Threshhold_Max"];
       Serial.print("DTH Temperature: ");
       Serial.println(DTH_temperature);
-      // Serial.print("DTH Humidity: ");
-      // Serial.println(DTH_humidity);
-      // Serial.print("LDR Light Intensity: ");
-      // Serial.println(LDR_lightIntensity);
-      // Serial.print("MQ135 Gas Concentration: ");
-      // Serial.println(MQ135_gasConcentration);
+      sio_DTH_temperature = DTH_temperature;
+      Serial.print("DTH Humidity: ");
+      Serial.println(DTH_humidity);
+      sio_DTH_humidity = DTH_humidity;
+      Serial.print("LDR Light Intensity: ");
+      Serial.println(LDR_lightIntensity);
+      sio_LDR_lightIntensity = LDR_lightIntensity;
+      Serial.print("MQ135 Gas Concentration: ");
+      Serial.println(MQ135_gasConcentration);
+      sio_MQ135_gasConcentration = MQ135_gasConcentration;
       // Serial.print("isFanON: ");
       // Serial.println(isFanON);
       // Serial.print("isLightON: ");
@@ -282,34 +269,113 @@ void loop() {
 
       // socketio event part
     // create message for Socket.IO (event)
-    DynamicJsonDocument doc(1024);
-    JsonArray array = doc.to<JsonArray>();
+    DynamicJsonDocument dhtData(124);
+    JsonArray array1 = dhtData.to<JsonArray>();
 
     // add evnet name
     // Hint: socket.on('event_name', ....
-    array.add("mq135Data");
+    array1.add("dhtData");
 
     // add payload (parameters) for the event
-    JsonObject param1 = array.createNestedObject();
+    JsonObject param1 = array1.createNestedObject();
     // param1["mqdata"] = 45;
     // param1["ldr"] = 23;
-    param1["temperature"] = DTH_temperature;
+    param1["temperature"] = sio_DTH_temperature;
+    param1["humidity"] = sio_DTH_humidity;
 
     // JSON to String (serialization)
     String output;
-    Serial.println("SOCKETIO SEND:");
+    // Serial.println("SOCKETIO SEND:");
 
-    serializeJson(doc, output);
+    serializeJson(dhtData, output);
 
     // Send event to socketio
     socketIO.sendEVENT(output);
-    doc.clear();
+    dhtData.clear();
 
 
+      // socketio event part
+    // create message for Socket.IO (event)
+    DynamicJsonDocument mq135Data(124);
+    JsonArray array2 = mq135Data.to<JsonArray>();
+
+    // add evnet name
+    // Hint: socket.on('event_name', ....
+    array2.add("mq135Data");
+
+    // add payload (parameters) for the event
+    JsonObject param2 = array2.createNestedObject();
+    // param1["mqdata"] = 45;
+    // param1["ldr"] = 23;
+    param2["concentration"] = sio_MQ135_gasConcentration;
+
+    // JSON to String (serialization)
+    String output2;
+    // Serial.println("SOCKETIO SEND:");
+
+    serializeJson(mq135Data, output2);
+
+    // Send event to socketio
+    socketIO.sendEVENT(output2);
+    mq135Data.clear();
+
+
+
+
+      // socketio event part
+    // create message for Socket.IO (event)
+    DynamicJsonDocument ldrData(124);
+    JsonArray array3 = ldrData.to<JsonArray>();
+
+    // add evnet name
+    // Hint: socket.on('event_name', ....
+    array3.add("ldrData");
+
+    // add payload (parameters) for the event
+    JsonObject param3 = array3.createNestedObject();
+    // param1["mqdata"] = 45;
+    // param1["ldr"] = 23;
+    param3["light_intensity"] = sio_LDR_lightIntensity;
+
+    // JSON to String (serialization)
+    String output3;
+    // Serial.println("SOCKETIO SEND:");
+
+    serializeJson(ldrData, output3);
+
+    // Send event to socketio
+    socketIO.sendEVENT(output3);
+    ldrData.clear();
+
+
+
+
+
+
+
+                    // Send DATA TO ARDUINO
+  StaticJsonDocument<512> docSendDataToArduino;  // Create a JSON document
+  // docSendDataToArduino["DTH_Temperature"] = 123;
+  // docSendDataToArduino["DTH_Humidity"] = 2132;
+  // docSendDataToArduino["LDR_LightIntensity"] = 123;
+  // docSendDataToArduino["MQ135_GasConcentration"] = 312;
+  docSendDataToArduino["isFanON"] = sio_isFanON;
+  docSendDataToArduino["isLightON"] = sio_isLightON;
+  docSendDataToArduino["isVentON"] = true;
+  // docSendDataToArduino["isAutomated"] = 234;
+  // docSendDataToArduino["DTH_Threshhold_Min"] = 234;
+  // docSendDataToArduino["DTH_Threshhold_Max"] = 234;
+  // docSendDataToArduino["MQ135_Threshhold_Min"] = 234;
+  // docSendDataToArduino["MQ135_Threshhold_Max"] = 342;
+  // docSendDataToArduino["LDR_Threshhold_Min"] = 23894;
+  // docSendDataToArduino["LDR_Threshhold_Max"] = 27983;
+
+  // Serialize JSON document to string and send it via software serial
+  serializeJson(docSendDataToArduino, swSerial);
+  swSerial.println();
+  docSendDataToArduino.clear();
 
   }
 
 
-
-  // delay(1000);  // Wait for 1 second before sending the next data
 }

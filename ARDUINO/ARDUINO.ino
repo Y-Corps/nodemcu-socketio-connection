@@ -21,12 +21,12 @@ void loop() {
 
     if (!error) {
       // int DTH_temperature = docReceivedFromArduino["DTH_Temperature"];
-      int DTH_humidity = docReceivedFromNodeMCU["DTH_Humidity"];
+      // int DTH_humidity = docReceivedFromNodeMCU["DTH_Humidity"];
       // int LDR_lightIntensity = docReceivedFromArduino["LDR_LightIntensity"];
       // int MQ135_gasConcentration = docReceivedFromArduino["MQ135_GasConcentration"];
       bool isFanON = docReceivedFromNodeMCU["isFanON"];
-      // bool isLightON = docReceivedFromArduino["isLightON"];
-      // bool isVentON = docReceivedFromArduino["isVentON"];
+      bool isLightON = docReceivedFromNodeMCU["isLightON"];
+      bool isVentON = docReceivedFromNodeMCU["isVentON"];
       // bool isAutomated = docReceivedFromArduino["isAutomated"];
       // int DTH_Threshhold_Min = docReceivedFromArduino["DTH_Threshhold_Min"];
       // int DTH_Threshhold_Max = docReceivedFromArduino["DTH_Threshhold_Max"];
@@ -34,10 +34,12 @@ void loop() {
       // int MQ135_Threshhold_Max = docReceivedFromArduino["MQ135_Threshhold_Max"];
       // int LDR_Threshhold_Min = docReceivedFromArduino["LDR_Threshhold_Min"];
       // int LDR_Threshhold_Max = docReceivedFromArduino["LDR_Threshhold_Max"];
-      Serial.print("FAN: ");
+      Serial.print("isFanON: ");
       Serial.println(isFanON);
-      Serial.println("Humidity: ");
-      Serial.println(DTH_humidity);
+      Serial.print("isLightON: ");
+      Serial.println(isLightON);
+      Serial.print("isVentON: ");
+      Serial.println(isVentON);
       docReceivedFromNodeMCU.clear();
     } else {
       // Handle JSON parsing error
@@ -48,13 +50,13 @@ void loop() {
   // SEND JSON DATA TO NODEMCU
   StaticJsonDocument<1024> docSendDataToArduino;  // Create a JSON document
 
-  docSendDataToArduino["DTH_Temperature"] = 4455;
-  // docSendDataToArduino["DTH_Humidity"] = 2132;
-  // docSendDataToArduino["LDR_LightIntensity"] = 123;
-  // docSendDataToArduino["MQ135_GasConcentration"] = 312;
+  docSendDataToArduino["DTH_Temperature"] = random(10,99);
+  docSendDataToArduino["DTH_Humidity"] = random(10,99);
+  docSendDataToArduino["LDR_LightIntensity"] = random(1,999);
+  docSendDataToArduino["MQ135_GasConcentration"] = random(10,99);
   // docSendDataToArduino["isFanON"] = true;
   // docSendDataToArduino["isLightON"] = true;
-  // docSendDataToArduino["isVentON"] = 43;
+  // docSendDataToArduino["isVentON"] = true;
   // docSendDataToArduino["isAutomated"] = 234;
   // docSendDataToArduino["DTH_Threshhold_Min"] = 234;
   // docSendDataToArduino["DTH_Threshhold_Max"] = 234;

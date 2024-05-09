@@ -72,19 +72,19 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
           // Serial.print("Event Name: ");
           // Serial.println(eventName);
           JsonObject data = array[1];
-           String timeValue = array[1].as<String>();  // Extract the value of "islight"
+          String timeValue = array[1].as<String>();  // Extract the value of "islight"
 
           // Print the value of "islight"
           // Serial.print(timeValue);
           // Serial.println();
           // Serial.println(sio_isLightON ? "true" : "false");
         }
-// DynamicJsonDocument doc(1024);
-//         deserializeJson(doc, payload, length);
+        // DynamicJsonDocument doc(1024);
+        //         deserializeJson(doc, payload, length);
 
-//         // Check if the event name is "isFanOn"
-//         JsonArray array = doc.as<JsonArray>();
-//         String eventName = array[0];  // Assuming the event name is the first element
+        //         // Check if the event name is "isFanOn"
+        //         JsonArray array = doc.as<JsonArray>();
+        //         String eventName = array[0];  // Assuming the event name is the first element
         if (eventName == "isFanOn") {
           // Print the event name
           // Serial.print("Event Name: ");
@@ -94,8 +94,45 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
 
           // Print the value of "islight"
           Serial.print(sio_isFanON);
-          // Serial.println(sio_isLightON ? "true" : "false");
+          Serial.println(sio_isFanON ? "true" : "false");
         }
+
+        if (eventName == "isVentOn") {
+          // Print the event name
+          // Serial.print("Event Name: ");
+          // Serial.println(eventName);
+          JsonObject data = array[1];
+          sio_isVentON = data["isVentOn"];  // Extract the value of "islight"
+
+          // Print the value of "islight"
+          Serial.print(sio_isVentON);
+          Serial.println(sio_isVentON ? "true" : "false");
+        }
+
+        if (eventName == "isLightOn") {
+          // Print the event name
+          // Serial.print("Event Name: ");
+          // Serial.println(eventName);
+          JsonObject data = array[1];
+          sio_isLightON = data["isLightOn"];  // Extract the value of "islight"
+
+          // Print the value of "islight"
+          // Serial.print(sio_isLightON);
+          Serial.println(sio_isLightON ? "true" : "false");
+        }
+
+        if (eventName == "isAutomated") {
+          // Print the event name
+          // Serial.print("Event Name: ");
+          // Serial.println(eventName);
+          JsonObject data = array[1];
+          sio_isAutomated = data["isAutomated"];  // Extract the value of "islight"
+
+          // Print the value of "islight"
+          // Serial.print(sio_isLightON);
+          Serial.println(sio_isAutomated ? "true" : "false");
+        }
+
 
         // delay(1000);
         doc.clear();
@@ -139,23 +176,12 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
 
   // // Send event to socketio
   // socketIO.sendEVENT(output);
-
-
-
-
-
-
-
-
-
-
-
 }
 
 void setup() {
   // Serial.begin(921600);
-  Serial.begin(9600); // Initialize serial communication at 9600 baud rate for debugging
-  swSerial.begin(9600);      // Set the baud rate for software serial
+  Serial.begin(9600);          // Initialize serial communication at 9600 baud rate for debugging
+  swSerial.begin(9600);        // Set the baud rate for software serial
   randomSeed(analogRead(A0));  // Seed the random number generator
 
   // Serial.setDebugOutput(true);
@@ -225,18 +251,23 @@ void loop() {
       int MQ135_Threshhold_Max = docReceivedFromArduino["MQ135_Threshhold_Max"];
       int LDR_Threshhold_Min = docReceivedFromArduino["LDR_Threshhold_Min"];
       int LDR_Threshhold_Max = docReceivedFromArduino["LDR_Threshhold_Max"];
+
       Serial.print("DTH Temperature: ");
       Serial.println(DTH_temperature);
       sio_DTH_temperature = DTH_temperature;
+
       Serial.print("DTH Humidity: ");
       Serial.println(DTH_humidity);
       sio_DTH_humidity = DTH_humidity;
+
       Serial.print("LDR Light Intensity: ");
       Serial.println(LDR_lightIntensity);
       sio_LDR_lightIntensity = LDR_lightIntensity;
+
       Serial.print("MQ135 Gas Concentration: ");
       Serial.println(MQ135_gasConcentration);
       sio_MQ135_gasConcentration = MQ135_gasConcentration;
+
       // Serial.print("isFanON: ");
       // Serial.println(isFanON);
       // Serial.print("isLightON: ");
@@ -267,7 +298,7 @@ void loop() {
 
 
 
-      // socketio event part
+    // socketio event part
     // create message for Socket.IO (event)
     DynamicJsonDocument dhtData(124);
     JsonArray array1 = dhtData.to<JsonArray>();
@@ -294,7 +325,7 @@ void loop() {
     dhtData.clear();
 
 
-      // socketio event part
+    // socketio event part
     // create message for Socket.IO (event)
     DynamicJsonDocument mq135Data(124);
     JsonArray array2 = mq135Data.to<JsonArray>();
@@ -322,7 +353,7 @@ void loop() {
 
 
 
-      // socketio event part
+    // socketio event part
     // create message for Socket.IO (event)
     DynamicJsonDocument ldrData(124);
     JsonArray array3 = ldrData.to<JsonArray>();
@@ -353,29 +384,34 @@ void loop() {
 
 
 
-                    // Send DATA TO ARDUINO
-  StaticJsonDocument<512> docSendDataToArduino;  // Create a JSON document
-  // docSendDataToArduino["DTH_Temperature"] = 123;
-  // docSendDataToArduino["DTH_Humidity"] = 2132;
-  // docSendDataToArduino["LDR_LightIntensity"] = 123;
-  // docSendDataToArduino["MQ135_GasConcentration"] = 312;
-  docSendDataToArduino["isFanON"] = sio_isFanON;
-  docSendDataToArduino["isLightON"] = sio_isLightON;
-  docSendDataToArduino["isVentON"] = true;
-  // docSendDataToArduino["isAutomated"] = 234;
-  // docSendDataToArduino["DTH_Threshhold_Min"] = 234;
-  // docSendDataToArduino["DTH_Threshhold_Max"] = 234;
-  // docSendDataToArduino["MQ135_Threshhold_Min"] = 234;
-  // docSendDataToArduino["MQ135_Threshhold_Max"] = 342;
-  // docSendDataToArduino["LDR_Threshhold_Min"] = 23894;
-  // docSendDataToArduino["LDR_Threshhold_Max"] = 27983;
+    // Send DATA TO ARDUINO
+    StaticJsonDocument<512> docSendDataToArduino;  // Create a JSON document
+    // docSendDataToArduino["DTH_Temperature"] = 123;
+    // docSendDataToArduino["DTH_Humidity"] = 2132;
+    // docSendDataToArduino["LDR_LightIntensity"] = 123;
+    // docSendDataToArduino["MQ135_GasConcentration"] = 312;
+    if (!sio_isAutomated){
 
-  // Serialize JSON document to string and send it via software serial
-  serializeJson(docSendDataToArduino, swSerial);
-  swSerial.println();
-  docSendDataToArduino.clear();
 
+      docSendDataToArduino["isFanON"] = sio_isFanON;
+      docSendDataToArduino["isLightON"] = sio_isLightON;
+      docSendDataToArduino["isVentON"] = sio_isVentON;
+    } else {
+      docSendDataToArduino["isFanON"] = false;
+      docSendDataToArduino["isLightON"] = false;
+      docSendDataToArduino["isVentON"] = false;
+    }
+    // docSendDataToArduino["isAutomated"] = 234;
+    // docSendDataToArduino["DTH_Threshhold_Min"] = 234;
+    // docSendDataToArduino["DTH_Threshhold_Max"] = 234;
+    // docSendDataToArduino["MQ135_Threshhold_Min"] = 234;
+    // docSendDataToArduino["MQ135_Threshhold_Max"] = 342;
+    // docSendDataToArduino["LDR_Threshhold_Min"] = 23894;
+    // docSendDataToArduino["LDR_Threshhold_Max"] = 27983;
+
+    // Serialize JSON document to string and send it via software serial
+    serializeJson(docSendDataToArduino, swSerial);
+    swSerial.println();
+    docSendDataToArduino.clear();
   }
-
-
 }
